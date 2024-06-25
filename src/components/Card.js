@@ -1,27 +1,23 @@
 import React from 'react';
-import bag from '../assets/img/bag.webp';
-import addBtn from '../assets/add.png';
-import addedBtn from '../assets/added.png';
-import favoriteIcon from '../assets/favorites.png';
-import favoritedIcon from '../assets/favorite.png';
-function Card() {
+function Card({img, title, price, onPlus}) {
     const [added, setAdded] = React.useState(false);
     const [favorited, setFavorited] = React.useState(false);
     const clickFavorite = () => {
         setFavorited(true);
     }
     const clickAdd = () => {
+      onPlus({img, title, price});
       setAdded(true);
     }
     return (
        <div className="card">
-        <img style={{width: '200px', height: '200px'}} src={bag}/>
-        <div><h3>Сумка Fashion</h3>
-        <p>Цена: <span>12000</span></p>
+        <img style={{width: '200px', height: '200px'}} src={img} alt='Favorites'/>
+        <div><h4>{title}</h4>
+        <p>Цена: <span>{price}</span>руб</p>
         </div>
         <div className='btns'>
-        <img style={{cursor: 'pointer'}} onClick={clickFavorite} src={favorited ? favoritedIcon : favoriteIcon} alt='Favorite'/>
-        <img style={{cursor: 'pointer'}} onClick={clickAdd} src={added ? addedBtn : addBtn}/>
+        <img style={{cursor: 'pointer'}} onClick={clickFavorite} src={favorited ? 'favorite.png' : 'favorites.png'} alt='Favorite'/>
+        {!added ? <button onClick={clickAdd} className='btn-add'>Добавить в корзину</button> : <button className='btn-add'>Добавлено</button>}
        </div>
        </div>
     )
