@@ -7,6 +7,7 @@ function App(props) {
 
   const [items, setItems] = React.useState([]);
   const [cartItems, setCartItems] = React.useState([]);
+  const [searchValue, setSearchValue] = React.useState('');
 React.useEffect(() => {
   fetch('https://654a3a31e182221f8d52c450.mockapi.io/items').then(res => {
     return res.json();
@@ -34,6 +35,10 @@ React.useEffect(() => {
   const onAddToCart = (obj) => {
     setCartItems(prev => [...prev, obj]);
   }
+
+  const onChangeSearchInput = (event) => {
+    setSearchValue(event.target.value);
+  }
  
  return (
   <div className='wrapper'>
@@ -41,15 +46,16 @@ React.useEffect(() => {
     {cartOpened ? <Cart items={cartItems} onCloseCart={() => setCartOpened(false)}/> : null}
       <div className='content'>
         <div className='content-box'>
-          <h1>Все товары</h1>
+          <h1>{searchValue ? `Поиск по запросу: "${searchValue}"` : 'Все товары'}</h1>
           <div className='searchBlock'>
             <img src="/search.png" alt='Search'/>
-            <input type='text' placeholder='Поиск...'/>
+            <input onChange={onChangeSearchInput} value={searchValue} type='text' placeholder='Поиск...'/>
+            {searchValue && <button onClick={() => setSearchValue('')} className='deleteValue'>✖</button>}
           </div>
         </div>
         <div className='items'>
-        {items.map((obj) => (
-          <Card title={obj.name} price={obj.price} img={obj.img} onPlus={onAddToCart}/>
+        {items.filter((item) => item.title.includes(searchValue)).map((item, index) => (
+          <Card key={index} title={item.name} price={item.price} img={item.img} onPlus={(obj) => onAddToCart(obj)}/>
         ))}
         </div>
       </div>
