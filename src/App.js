@@ -1,20 +1,43 @@
 import React  from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Header from './components/Hedaer.js';
 import Cart from './components/Cart.js';
-import Card from './components/Card.js';
+import Home from './pages/Home.jsx';
+import Favorites from './pages/Favorites.jsx';
+import axios from 'axios';
 
 function App(props) {
 
   const [items, setItems] = React.useState([]);
   const [cartItems, setCartItems] = React.useState([]);
   const [searchValue, setSearchValue] = React.useState('');
+  const [favorites, setFavorites] = React.useState([]);
+
+
+
+
+
+
 React.useEffect(() => {
-  fetch('https://654a3a31e182221f8d52c450.mockapi.io/items').then(res => {
-    return res.json();
-  }).then(json => {
-    setItems(json)
-  });
-}, []);
+ async function fetchData() {
+  const cartResponse = await axios.get('https://654a3a31e182221f8d52c450.mockapi.io/cart');
+  const favoritesResponse = await axios.get('https://654d178677200d6ba859fa04.mockapi.io/favorites');
+  const itemsResponse = await axios.get('https://654a3a31e182221f8d52c450.mockapi.io/items');
+
+  setCartItems(cartResponse.data);
+  setFavorites(favoritesResponse.data);
+  setItems(itemsResponse.data);
+
+ }
+
+ fetchData();
+},[]);
+
+
+const onRemoveItem = (id) => {
+    axios.delete(`https://654a3a31e182221f8d52c450.mockapi.io/cart/${id}`)
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+}
 
 
   // const arr = [
@@ -33,8 +56,26 @@ React.useEffect(() => {
 
 
   const onAddToCart = (obj) => {
-    setCartItems(prev => [...prev, obj]);
-  }
+    if (cartItems.find((item) => Number(item.id) === Number(obj.id))) {
+      axios.delete(`https://654a3a31e182221f8d52c450.mockapi.io/cart/${obj.id}`)
+      setCartItems((prev) => prev.filter((item) => Number(item.id) !== Number(obj.id)))
+    }else{
+    axios.post('https://654a3a31e182221f8d52c450.mockapi.io/cart', obj)
+    setCartItems((prev) => [...prev, obj]);
+      }}
+
+  const onAddToFavorite = async (obj) => {
+    try {
+      if (favorites.find((favObj) => favObj.id === obj.id)) {
+        axios.delete(`https://654d178677200d6ba859fa04.mockapi.io/favorites/${obj.id}`);
+      } else {
+        const { data } = await axios.post('https://654d178677200d6ba859fa04.mockapi.io/favorites', obj);
+        setFavorites((prev) => [...prev, data]);
+      }
+    } catch (error) {
+      alert('Не удалось добавить в фавориты');
+    }
+  };
 
   const onChangeSearchInput = (event) => {
     setSearchValue(event.target.value);
@@ -43,22 +84,13 @@ React.useEffect(() => {
  return (
   <div className='wrapper'>
     <Header onClickCart={() => setCartOpened(true)} />
-    {cartOpened ? <Cart items={cartItems} onCloseCart={() => setCartOpened(false)}/> : null}
-      <div className='content'>
-        <div className='content-box'>
-          <h1>{searchValue ? `Поиск по запросу: "${searchValue}"` : 'Все товары'}</h1>
-          <div className='searchBlock'>
-            <img src="/search.png" alt='Search'/>
-            <input onChange={onChangeSearchInput} value={searchValue} type='text' placeholder='Поиск...'/>
-            {searchValue && <button onClick={() => setSearchValue('')} className='deleteValue'>✖</button>}
-          </div>
-        </div>
-        <div className='items'>
-        {items.filter((item) => item.title.includes(searchValue)).map((item, index) => (
-          <Card key={index} title={item.name} price={item.price} img={item.img} onPlus={(obj) => onAddToCart(obj)}/>
-        ))}
-        </div>
-      </div>
+    {cartOpened ? <Cart items={cartItems} onCloseCart={() => setCartOpened(false)} onRemove={onRemoveItem}/> : null}
+      
+      <Routes>
+        <Route path='/favorites' element={<Favorites items={favorites} onAddToFavorite={onAddToFavorite} />} exact></Route>
+        <Route path='/' element={<Home cartItems={cartItems} items={items} searchValue={searchValue} setSearchValue={setSearchValue} onAddToFavorite={onAddToFavorite} onAddToCart={onAddToCart} onChangeSearchInput={onChangeSearchInput}/>}></Route>
+      </Routes>
+     
        
   </div>
  )

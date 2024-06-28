@@ -1,13 +1,14 @@
 import React from 'react';
-function Card({img, title, price, onPlus}) {
-    const [added, setAdded] = React.useState(false);
-    const [favorited, setFavorited] = React.useState(false);
+function Card({id, img, title, price, onPlus, onFavorite, favorited = false, isAdded = false}) {
+    const [added, setAdded] = React.useState(isAdded);
+    const [isFavorite, setIsFavorite] = React.useState(favorited);
     const clickFavorite = () => {
-        setFavorited(true);
+        onFavorite({id, img, title, price});
+        setIsFavorite(!isFavorite);
     }
     const clickAdd = () => {
-      onPlus({img, title, price});
-      setAdded(true);
+      onPlus({id, img, title, price});
+      setAdded(!added);
     }
     return (
        <div className="card">
@@ -16,11 +17,11 @@ function Card({img, title, price, onPlus}) {
         <p>Цена: <span>{price}</span>руб</p>
         </div>
         <div className='btns'>
-        <img style={{cursor: 'pointer'}} onClick={clickFavorite} src={favorited ? 'favorite.png' : 'favorites.png'} alt='Favorite'/>
+        <img style={{cursor: 'pointer'}} onClick={clickFavorite} src={isFavorite ? 'favorite.png' : 'favorites.png'} alt='Favorite'/>
         {!added ? <button onClick={clickAdd} className='btn-add'>Добавить в корзину</button> : <button className='btn-add'>Добавлено</button>}
        </div>
        </div>
     )
-}
+} 
 
 export default Card;
